@@ -1,6 +1,6 @@
-from SI_Toolkit.Functions.TF.TF2TFLite import tf2tf_lite
+from Auxiliary_Files.TF2TFLite import tf2tf_lite
 
-path_to_models = '../Experiments/Trial_14__17_08_2024/Models/'
+path_to_models = '../../../Driver/CartPoleSimulation/SI_Toolkit_ASF/Experiments/Trial_14__17_08_2024/Models/'
 net_name = 'Dense-7IN-32H1-32H2-1OUT-0'
 batch_size = 1
 
