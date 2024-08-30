@@ -30,7 +30,7 @@ and drag the `TFmicroZynqSrc/` directory to the `src/` directory of your project
 You might want to change "Configuration:" to "All configurations", 
 as the changes are needed in both release and debug configuration if you want to use them.
 In Settings -> Tool Settings -> System Builder -> Miscellaneous -> Other flags add:
-```-std=c++2``` and click "Apply and Close". This will allow you to use C++20 features on the system level.
+```-std=c++2a``` and click "Apply and Close". This will allow you to use C++20 features on the system level.
 You can also activate the "Verbose" checkbox (optional).
 
 4. Right click on the {project_name} in Explorer pane
