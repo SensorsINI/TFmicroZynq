@@ -1,8 +1,4 @@
-#include <math.h>
-
 #include "tensorflow/lite/core/c/common.h"
-#include "Dense_7IN_32H1_32H2_1OUT_0_model.h"
-
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
@@ -11,9 +7,16 @@
 #include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
+// If you use the static library as described in README,
+// you can replace all the above #include "tensorflow/..." with one line:
+// #include "TFmicroZynqLib/tfmicrozynq.h"
+
+#include <math.h>
 #include <stdio.h>  // Include this header to use snprintf
 #include <stdarg.h>  // For va_list, va_start, va_end
 #include "xil_printf.h"
+
+#include "Dense_7IN_32H1_32H2_1OUT_0_model.h"
 
 
 namespace {
