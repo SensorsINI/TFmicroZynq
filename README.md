@@ -7,14 +7,28 @@ and with python script to convert TF models directly to the  C++ files which TF 
 
 ## Repository structure
 - `TFmicroZynqSrc/` - Files which needs to be included as part of your Zynq C++ firmware project
-- `Auxiliary_Files` - Files which were altered, removed or added related to default to make the deployment possible
+- `Auxiliary_Files/` - Files which were altered, removed or added related to default to make the deployment possible
+- `TFmicroZynqLib/` - TF micro library compiled as static library.
+  - `TFmicroZynqLib/libTFmicroZynq.a` - The static library archive file
+  - `TFmicroZynqLib/TFmicroZynqHeaders/` - Include the headers file for the library. At the moment of writing this README, it is exact copy of `TFmicroZynqSrc/` just with .cc files removed.
+  - `TFmicroZynqLib/tfmicrozynq.h` - header-only interface layer for the library to simplify including tf micro library. Just include this file in your project.
 - `Convert_Network_To_TFlitemicro.py` - Launch this script to convert your neural network to TFmicro format.
 - `Example/` - Example of how to use the TFmicro on Zynq-Z7
 You can also find relevant parameters in this script.
 
-## How to deploy neural network on Zynq-Z7
+## How to deploy neural network on Zynq-Z7 (tested on Vitis 2020.1)
 
-### Preparing TF micro library in Vitis (tested on Vitis 2020.1)
+I've tested 2 ways of including TF micro in Vitis project:
+- Including files in the project and building everything together.
+First build takes a lot of time, but later incremental builds are fast.
+It is however to me difficult to predict when Vitis decides it needs to rebuild everything.
+- Building TF micro as a static library and linking it to the project.
+Slow build of the library, but builds of the application are very fast.
+
+We first describe how to compile TF micro file together with your application,
+below instructions how to compile and use TF micro as static library.
+
+### A. Including .cc TF micro files in Vitis and compiling all files together
 
 1. Create a new application project,
 We tested it with the "Empty Application (C++)" template.
@@ -59,6 +73,70 @@ You might want to again change "Configuration:" to "All configurations".
         This will link the standard math library.
     - Optional: Compiler (ARM v7 g++ compiler) -> Optimization -> Optimization Level,
         for Debug configuration set to "None (-O0)", for Release configuration set to "Optimize most (-O3)".
+
+5. Click on the {project_name}_system in Explorer pane,
+either right click and select Build Project or click on the hammer icon.
+Clicking at a small arrow next to the hammer icon, you can select build configuration.
+
+### B. How to use TF micro precompiled as static library
+
+1. Do points 1-3 from the previous section (A.). Just instead of copying the `TFmicroZynqSrc/` directory,
+copy the `TFmicroZynqLib/` directory to the `src/` directory of your project.
+2. Right-click on the {project_name} in Explorer pane
+(one line below where you were before), select "C/C++ Build Settings", go to Settings.
+You might want to change "Configuration:" to "All configurations".
+
+    - Compiler (ARM v7 g++ compiler) -> Directories -> Include paths -> add (icon with plus) -> Workspace... ->
+      select the `TFmicroLib/TFmicroZynqHeaders/`, `flatbuffers/include`, `gemmlowp`, `kissfft` `ruy` click "OK" and "Apply".
+      Notice that you need to select include folder inside flatbuffers, not the flatbuffers folder itself.
+      See the screenshot for section A.4., how it should look like.
+      Notice that in contrast to A.4. here the parent directory is `TFmicroZynqLib/` not `TFmicroZynqSrc/`.
+      The paths in the "Include Paths (-I)" window will appear only after clicking "OK".
+      Click "Apply".
+    - Compiler (ARM v7 g++ compiler) -> Miscellaneous -> Other flags, add:
+        ``` -std=c++2a```, click "Apply".
+    - Linker -> Libraries:
+        - -> Libraries (-l) -> add ```m```, click "OK". This will link the standard math library.
+        - -> Libraries (-l) -> add ```TFmicroZynq```، click "OK"
+          (This should be the name of .a library file without the `lib` prefix and `.a` suffix).
+        - Library search path -> add (icon with plus) -> Workspace... -> select the `TFmicroZynqLib/` directory,
+          click "OK" and "Apply".
+     - Optional: Compiler (ARM v7 g++ compiler) -> Optimization -> Optimization Level,
+         for Debug configuration set to "None (-O0)", for Release configuration set to "Optimize most (-O3)".
+
+3. Click on the {project_name}_system in Explorer pane,
+either right click and select Build Project or click on the hammer icon.
+Clicking at a small arrow next to the hammer icon, you can select build configuration.
+
+### C. How to compile TF micro as static library on your own
+
+1. Create a new *library project*.
+Name it `TFmicroZynq`.
+You can also name it differently, but then your static library archive file (a.)
+will have a different name than in section B.
+You need to select a hardware platform,
+but as this library does not communicate to PL,
+it seems to work properly also if you later use the compiled library
+with an application using different hardware platform.
+Use Empty Application (C++) template.
+
+2. Follow the steps A.2., A.3, A.4.
+You will need to skip the linking math library step.
+I built it only in release configuration.
+I set the optimization level to "Optimize most (-O3)" and Debug None to increase the performance.
+You can use the library with higher level of optimization and no debugging,
+with an application with different settings.
+
+3. Click on the {project_name} in Explorer pane,
+either right click and select Build Project or click on the hammer icon.
+Clicking at a small arrow next to the hammer icon, you can select build configuration.
+
+4. After the build is finished,
+you can find the static library `libTFmicroZynq.a` archive file in the `Debug/` or `Release/` directory of your project.
+If you click on {project_name}_system and request the build the Vitis will claim that the build failed,
+as it will try to obtain a bootable image.
+If the settings for library compilation were correct,
+the library should be however still compiled correctly and the .a file should be available.
 
 ### Using the example
 Just copy the files from the `Example/` directory of this repo to the `src/` directory of your project and build the project.
